@@ -67,15 +67,19 @@ async function init() {
       document.body.style.background = tg.themeParams?.bg_color || '#0f0f12';
     }
 
-    const isLocalFile = window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null';
-    if (!isLocalFile) {
+    var isLocalFile = window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null';
+    var isGitHubPages = typeof window.location.hostname === 'string' && window.location.hostname.indexOf('github.io') !== -1;
+    if (!isLocalFile && !isGitHubPages) {
       try {
-        const base = window.location.origin;
-        const res = await fetch(`${base}/api/config`);
+        var base = window.location.origin;
+        var controller = new AbortController();
+        var timeoutId = setTimeout(function () { controller.abort(); }, 4000);
+        var res = await fetch(base + '/api/config', { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (res.ok) {
-          const { supabaseUrl, supabaseKey } = await res.json();
-          if (supabaseUrl && supabaseKey && window.supabase) {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+          var json = await res.json();
+          if (json.supabaseUrl && json.supabaseKey && window.supabase) {
+            supabase = window.supabase.createClient(json.supabaseUrl, json.supabaseKey);
           }
         }
       } catch (err) {
@@ -109,27 +113,29 @@ async function init() {
 
 function bindWelcomeEvents() {
   const welcome = document.getElementById('welcomeScreen');
-  const mainApp = document.getElementById('app');
+  const closeBtn = document.getElementById('closeWelcome');
+  const btnSchedule = document.getElementById('btnSchedule');
+  const btnSongs = document.getElementById('btnSongs');
+  const btnSettings = document.getElementById('btnSettings');
 
-  document.getElementById('closeWelcome').onclick = () => {
-    if (window.Telegram?.WebApp?.close) {
-      window.Telegram.WebApp.close();
-    } else {
-      showScheduleScreen();
-    }
+  if (closeBtn) closeBtn.onclick = function () {
+    if (window.Telegram?.WebApp?.close) window.Telegram.WebApp.close();
+    else showScheduleScreen();
   };
 
-  document.querySelector('.welcome-menu').addEventListener('click', (e) => {
-    const btn = e.target.closest('.welcome-menu-btn');
-    if (!btn) return;
-    const screen = btn.getAttribute('data-screen');
-    if (screen === 'schedule' || screen === 'songs') {
-      welcome.classList.add('hidden');
-      showSongsScreen();
-    } else {
-      window.Telegram?.WebApp?.showPopup?.({ title: 'Скоро', message: 'Раздел в разработке.' });
-    }
-  });
+  function goToSchedule() {
+    welcome.style.display = 'none';
+    welcome.classList.add('hidden');
+    showSongsScreen();
+  }
+
+  if (btnSchedule) btnSchedule.onclick = goToSchedule;
+  if (btnSongs) btnSongs.onclick = goToSchedule;
+
+  if (btnSettings) btnSettings.onclick = function () {
+    if (window.Telegram?.WebApp?.showPopup) window.Telegram.WebApp.showPopup({ title: 'Скоро', message: 'Раздел в разработке.' });
+    else alert('Раздел в разработке.');
+  };
 }
 
 function showScheduleScreen() {
@@ -154,16 +160,24 @@ let songsPickerDay = null;
 let songsPickerRole = null;
 
 function showSongsScreen() {
-  document.getElementById('songsScreen').hidden = false;
-  document.getElementById('songsScreen').classList.remove('hidden');
-  document.getElementById('app').setAttribute('hidden', '');
-  Promise.all([loadSchedule(), loadUsers()]).then(renderSongsList);
+  var welcome = document.getElementById('welcomeScreen');
+  var songsEl = document.getElementById('songsScreen');
+  var appEl = document.getElementById('app');
+  if (welcome) { welcome.style.display = 'none'; welcome.classList.add('hidden'); welcome.setAttribute('hidden', ''); }
+  if (appEl) appEl.setAttribute('hidden', '');
+  if (songsEl) {
+    songsEl.removeAttribute('hidden');
+    songsEl.classList.remove('hidden');
+    songsEl.style.display = 'flex';
+  }
+  Promise.all([loadSchedule(), loadUsers()]).then(function () { renderSongsList(); });
 }
 
 function hideSongsScreen() {
-  document.getElementById('songsScreen').hidden = true;
-  document.getElementById('songsScreen').classList.add('hidden');
-  document.getElementById('welcomeScreen').classList.remove('hidden');
+  var songsEl = document.getElementById('songsScreen');
+  var welcome = document.getElementById('welcomeScreen');
+  if (songsEl) { songsEl.setAttribute('hidden', ''); songsEl.classList.add('hidden'); songsEl.style.display = 'none'; }
+  if (welcome) { welcome.removeAttribute('hidden'); welcome.classList.remove('hidden'); welcome.style.display = ''; }
 }
 
 function renderSongsList() {
