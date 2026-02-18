@@ -98,9 +98,7 @@ function bindWelcomeEvents() {
     const btn = e.target.closest('.welcome-menu-btn');
     if (!btn) return;
     const screen = btn.getAttribute('data-screen');
-    if (screen === 'schedule') {
-      showScheduleScreen();
-    } else if (screen === 'songs') {
+    if (screen === 'schedule' || screen === 'songs') {
       welcome.classList.add('hidden');
       showSongsScreen();
     } else {
@@ -271,7 +269,10 @@ function openSongsPicker() {
 
 async function assignSlot(day, role, name) {
   if (!supabase) {
-    if (name) alert('Сохранение только при запуске через сервер (npx vercel dev).');
+    if (!schedule[day]) schedule[day] = {};
+    if (name && name.trim()) schedule[day][role] = name.trim();
+    else schedule[day][role] = undefined;
+    renderSongsList();
     return;
   }
   await supabase.from('service_schedule')
