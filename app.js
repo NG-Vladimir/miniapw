@@ -16,11 +16,16 @@ let users = [];
 let schedule = {};
 
 function getMoscowNow() {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: 'numeric' }).formatToParts(new Date());
-  return {
-    month: parseInt(parts.find(p => p.type === 'month').value, 10),
-    year: parseInt(parts.find(p => p.type === 'year').value, 10),
-  };
+  try {
+    const parts = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Moscow', year: 'numeric', month: 'numeric' }).formatToParts(new Date());
+    const month = parts.find(p => p.type === 'month');
+    const year = parts.find(p => p.type === 'year');
+    if (month && year) {
+      return { month: parseInt(month.value, 10), year: parseInt(year.value, 10) };
+    }
+  } catch (e) {}
+  const d = new Date();
+  return { month: d.getMonth() + 1, year: d.getFullYear() };
 }
 
 function getTuesdayDays(month, year) {
@@ -41,45 +46,65 @@ function getSundayDays(month, year) {
   return result;
 }
 
+function getEl(id) {
+  const el = document.getElementById(id);
+  if (!el) throw new Error('Элемент не найден: #' + id);
+  return el;
+}
+
 async function init() {
-  const tg = window.Telegram?.WebApp;
-  if (tg) {
-    tg.ready();
-    tg.expand();
-    document.body.style.background = tg.themeParams?.bg_color || '#0f0f12';
-  }
+  const loader = document.getElementById('loader');
+  try {
+    const welcome = getEl('welcomeScreen');
+    const welcomeTitle = getEl('welcomeTitle');
+    const welcomeMenu = document.querySelector('.welcome-menu');
+    if (!welcomeMenu) throw new Error('Меню .welcome-menu не найдено');
 
-  const isLocalFile = window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null';
-  if (!isLocalFile) {
-    try {
-      const base = window.location.origin;
-      const res = await fetch(`${base}/api/config`);
-      if (res.ok) {
-        const { supabaseUrl, supabaseKey } = await res.json();
-        if (supabaseUrl && supabaseKey && window.supabase) {
-          supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-        }
-      }
-    } catch (err) {
-      console.warn('Config failed, running offline:', err);
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+      document.body.style.background = tg.themeParams?.bg_color || '#0f0f12';
     }
+
+    const isLocalFile = window.location.protocol === 'file:' || !window.location.origin || window.location.origin === 'null';
+    if (!isLocalFile) {
+      try {
+        const base = window.location.origin;
+        const res = await fetch(`${base}/api/config`);
+        if (res.ok) {
+          const { supabaseUrl, supabaseKey } = await res.json();
+          if (supabaseUrl && supabaseKey && window.supabase) {
+            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+          }
+        }
+      } catch (err) {
+        console.warn('Config failed, running offline:', err);
+      }
+    }
+
+    const now = getMoscowNow();
+    currentMonth = now.month;
+    currentYear = now.year;
+
+    await loadUsers();
+    await loadSchedule();
+    render();
+    bindEvents();
+
+    const firstName = window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || 'Гость';
+    welcomeTitle.textContent = firstName + ', привет!';
+    bindWelcomeEvents();
+    bindSongsScreenOnce();
+  } catch (err) {
+    console.error(err);
+    if (loader) {
+      loader.innerHTML = '<span style="color:#ef4444">Ошибка: ' + (err.message || String(err)) + '</span>';
+      loader.classList.remove('hidden');
+    }
+    return;
   }
-
-  const now = getMoscowNow();
-  currentMonth = now.month;
-  currentYear = now.year;
-
-  await loadUsers();
-  await loadSchedule();
-  render();
-  bindEvents();
-
-  const firstName = window.Telegram?.WebApp?.initDataUnsafe?.user?.first_name || 'Гость';
-  document.getElementById('welcomeTitle').textContent = `${firstName}, привет!`;
-  bindWelcomeEvents();
-  bindSongsScreenOnce();
-
-  document.getElementById('loader').classList.add('hidden');
+  if (loader) loader.classList.add('hidden');
 }
 
 function bindWelcomeEvents() {
@@ -465,7 +490,8 @@ async function saveDay() {
   render();
 }
 
-init().catch(err => {
-  console.error(err);
-  document.getElementById('loader').innerHTML = `<span style="color:#ef4444">Ошибка: ${err.message}</span>`;
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => init());
+} else {
+  init();
+}
