@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>График служений</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="welcomeScreen" class="welcome-screen">
+    <div class="welcome-header">
+      <button id="closeWelcome" class="close-welcome-btn" type="button">× Закрыть</button>
+      <div class="welcome-header-actions">
+        <span class="welcome-header-icon">⌄</span>
+        <span class="welcome-header-icon">⋯</span>
+      </div>
+    </div>
+    <div class="welcome-content">
+      <h2 id="welcomeTitle" class="welcome-title">Привет!</h2>
+      <nav class="welcome-menu">
+        <button type="button" class="welcome-menu-btn" data-screen="schedule">
+          <span class="menu-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          </span>
+          Расписание
+        </button>
+        <button type="button" class="welcome-menu-btn" data-screen="songs">
+          <span class="menu-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </span>
+          Песни
+        </button>
+        <button type="button" class="welcome-menu-btn" data-screen="settings">
+          <span class="menu-icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </span>
+          Настройки
+        </button>
+      </nav>
+    </div>
+  </div>
+
+  <div id="songsScreen" class="songs-screen" hidden>
+    <div class="songs-header">
+      <div class="songs-header-left">
+        <button id="songsClose" class="close-welcome-btn" type="button">× Закрыть</button>
+        <button id="songsBack" class="songs-back-btn" type="button">← Назад</button>
+      </div>
+      <div class="welcome-header-actions">
+        <span class="welcome-header-icon">⌄</span>
+        <span class="welcome-header-icon">⋯</span>
+      </div>
+    </div>
+    <div class="songs-body">
+      <h1 class="songs-title">Расписание</h1>
+      <p class="songs-subtitle">Нажми «пусто» — записаться. Нажми свой слот — отменить.</p>
+      <div class="songs-month-nav">
+        <button id="songsPrevMonth" class="nav-btn" type="button">‹</button>
+        <span id="songsMonthLabel" class="month-label">Февраль 2026</span>
+        <button id="songsNextMonth" class="nav-btn" type="button">›</button>
+      </div>
+      <div class="songs-actions">
+        <button id="songsExpandAll" class="songs-action-btn" type="button">Развернуть всё</button>
+        <button id="songsCollapseAll" class="songs-action-btn" type="button">Свернуть всё</button>
+      </div>
+      <div id="songsDayList" class="songs-day-list"></div>
+    </div>
+    <div id="songsNamePicker" class="songs-picker" hidden>
+      <div class="songs-picker-inner">
+        <p class="songs-picker-title">Выберите участника</p>
+        <div id="songsPickerNames" class="songs-picker-names"></div>
+        <button id="songsPickerCancel" class="songs-action-btn" type="button">Отмена</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app" class="main-app" hidden>
+    <header class="header">
+      <h1>График служений</h1>
+      <div class="month-nav">
+        <button id="prevMonth" class="nav-btn">‹</button>
+        <span id="monthLabel" class="month-label">Февраль 2026</span>
+        <button id="nextMonth" class="nav-btn">›</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="schedule-section">
+        <div id="scheduleList" class="schedule-list"></div>
+      </section>
+
+      <section class="day-edit" id="dayEdit" hidden>
+        <div class="day-edit-header">
+          <h2 id="editDayTitle">17 число</h2>
+          <button id="closeEdit" class="close-btn">×</button>
+        </div>
+        <div class="role-fields" id="roleFields"></div>
+        <button id="saveDay" class="save-btn">Сохранить</button>
+      </section>
+    </main>
+
+    <div id="loader" class="loader">
+      <div class="spinner"></div>
+      <span>Загрузка...</span>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

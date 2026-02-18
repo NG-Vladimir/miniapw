@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>График служений</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <header class="header">
+      <h1>📅 График служений</h1>
+      <div class="month-nav">
+        <button id="prevMonth" class="nav-btn">‹</button>
+        <span id="monthLabel" class="month-label">Февраль 2026</span>
+        <button id="nextMonth" class="nav-btn">›</button>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="schedule-section">
+        <div id="scheduleList" class="schedule-list"></div>
+      </section>
+
+      <section class="day-edit" id="dayEdit" hidden>
+        <div class="day-edit-header">
+          <h2 id="editDayTitle">17 число</h2>
+          <button id="closeEdit" class="close-btn">×</button>
+        </div>
+        <div class="role-fields" id="roleFields"></div>
+        <button id="saveDay" class="save-btn">Сохранить</button>
+      </section>
+    </main>
+
+    <div id="loader" class="loader">
+      <div class="spinner"></div>
+      <span>Загрузка...</span>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>

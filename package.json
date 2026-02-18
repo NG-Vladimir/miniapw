@@ -1,0 +1,13 @@
+{
+  "name": "telegram-role-bot",
+  "version": "1.0.0",
+  "description": "Telegram bot for choosing and remembering your music role",
+  "main": "api/webhook.js",
+  "type": "module",
+  "scripts": {
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0"
+  }
+}

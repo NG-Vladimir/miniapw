@@ -1,0 +1,23 @@
+Скопируй эти пары в Vercel → Settings → Environment Variables
+(для каждой пары: Add New → Key / Value → Production → Save)
+
+---
+Key:
+TELEGRAM_BOT_TOKEN
+
+Value:
+8094871525:AAFcv5PysF7AaujOjhDp13BUwqWPRRX2UGE
+
+---
+Key:
+SUPABASE_URL
+
+Value:
+https://srxhumzgxaifdottbfgr.supabase.co
+
+---
+Key:
+SUPABASE_ANON_KEY
+
+Value:
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNyeGh1bXpneGFpZmRvdHRiZmdyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMjMyNzksImV4cCI6MjA4Njc5OTI3OX0.V0qvUVOc0XOln4hqUUWywe4DC9XmrMemfPv8yUqMbpU
